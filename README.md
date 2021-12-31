@@ -1,1 +1,5 @@
-# pipeline
+pipeline
+========
+
+CI/CD resources
+
