@@ -13,9 +13,6 @@
   "bugs": {
     "url": "https://github.com/gurumojo/pipeline/issues"
   },
-  "engines": {
-    "node": ">=14.0.0 <15.0.0"
-  },
   "dependencies": {
     "argparse": "^2.0.1"
   },
