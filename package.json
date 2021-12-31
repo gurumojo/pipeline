@@ -1,0 +1,30 @@
+{
+  "name": "pipeline",
+  "description": "CI/CD resources",
+  "version": "0.0.1",
+  "author": "theguy@gurumojo.net",
+  "license": "ISC",
+  "private": true,
+  "homepage": "https://github.com/gurumojo/pipeline#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gurumojo/pipeline.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gurumojo/pipeline/issues"
+  },
+  "engines": {
+    "node": ">=14.0.0 <15.0.0"
+  },
+  "dependencies": {
+    "argparse": "^2.0.1"
+  },
+  "devDependencies": {
+    "jest": "^27.4.5"
+  },
+  "scripts": {
+    "build": "echo; echo Hello World; echo",
+    "test": "npx jest"
+  },
+  "main": "index.js"
+}
