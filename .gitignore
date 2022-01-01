@@ -1,3 +1,4 @@
 *.sw[g-p]
+*.html
 node_modules
 version
