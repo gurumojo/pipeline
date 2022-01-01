@@ -8,15 +8,8 @@ Then('finally log details', function() {
 })
 
 
-Given('a healthy CI pipeline', function () {
+Given('an integration pipeline', function () {
 	this.setStatus('healthy')
-})
-
-
-Given('a new code checkout', function () {
-	console.log(`
-		$ git checkout ${this.commit}
-	`)
 })
 
 Given('a new code submission', function () {
@@ -25,19 +18,30 @@ Given('a new code submission', function () {
 	this.setCommit(hash.copy().digest('hex').slice(0, 12))
 })
 
-Given('a code commit hash', function () {
+Given('a new code checkout', function () {
+	//	$ git checkout ${this.commit}
+})
+
+Given('an integration pipeline trigger', function () {
 	assert.equal(this.commit.length, 12)
 })
 
-
-When('integration succeeds', function () {
-	this.setBuild(this.commit)
-	this.setStatus('success')
+Given('any application in {}', function (environment) {
+	this.setEnvironment(environment)
 })
 
-When('integration fails', function () {
-	this.setBuild(null)
-	this.setStatus('failed')
+
+When('integration {}', function (state) {
+	switch (state) {
+		case 'succeeds':
+			this.setBuild(this.commit)
+			this.setStatus('success')
+			break
+		case 'fails':
+		default:
+			this.setBuild(null)
+			this.setStatus('failed')
+	}
 })
 
 When('unit tests {}', function (status) {
@@ -51,6 +55,10 @@ When('unit tests {}', function (status) {
 	}
 })
 
+When('I have active {} credentials', function (role) {
+	this.setRole(role)
+})
+
 
 Then('the build is saved with the commit hash', function () {
 	assert.ok(this.build === this.commit)
@@ -60,12 +68,16 @@ Then('the deployment pipeline is triggered', function () {
 	assert.ok(this.deploy)
 })
 
-Then('the build status is {}', function (string) {
+Then('the pipeline status is {}', function (string) {
 	assert.ok(this.status === string)
 })
 
 Then('the build artifacts are purged', function () {
 	assert.ok(!this.build)
+})
+
+Then('the pipeline grants {} permission', function (string) {
+	assert.ok(this.access === string)
 })
 
 

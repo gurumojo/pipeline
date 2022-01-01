@@ -6,14 +6,14 @@ Feature: continuous integration
 
 	Background:
 
-		Given a healthy CI pipeline
+		Given an integration pipeline
 		And a new code submission
 		And a new code checkout
 		#And finally log details
 
 	Scenario: 
 
-		Given a code commit hash
+		Given an integration pipeline trigger
 		When unit tests pass
 		And integration succeeds
 		Then the build is saved with the commit hash
@@ -21,22 +21,25 @@ Feature: continuous integration
 
 	Scenario: 
 
-		Given a code commit hash
+		Given an integration pipeline trigger
 		When unit tests fail
 		And integration fails
 		Then the build artifacts are purged
-		And the build status is failed
+		And the pipeline status is failed
 
 
-	# Scenario Outline:
+	Scenario Outline:
 
-	# 	Given a variable set to <var>
-	# 	When I increment the variable by <increment>
-	# 	Then the variable should contain <result>
+		Given any application in <environment>
+		When I have active <role> credentials
+		Then the pipeline grants <access> permission
 
-	# 	Examples:
-	# 		| var | increment | result |
-	# 		| 100 |         5 |    105 |
-	# 		|  12 |         5 |     17 |
-	# 		|  99 |      1238 |   1337 |
+		Examples:
+			| environment | role  | access |
+			| development | admin | write  |
+			| development | user  | read   |
+			| integration | admin | read   |
+			| integration | user  | zero   |
+			| production  | admin | read   |
+			| production  | user  | zero   |
 
