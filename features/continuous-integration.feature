@@ -2,26 +2,25 @@ Feature: continuous integration
 
 	To ensure quality, security, and value
 	As a software development stakeholder
-	I want to build every change automatically
+	One prefers building changes automatically
 
 	Background:
 
-		Given an integration pipeline
+		Given a healthy integration pipeline
 		And a new code submission
-		And a new code checkout
 		#And finally log details
 
 	Scenario: 
 
-		Given an integration pipeline trigger
+		Given a clean code checkout
 		When unit tests pass
 		And integration succeeds
-		Then the build is saved with the commit hash
+		Then the build artifacts are saved
 		And the deployment pipeline is triggered
 
 	Scenario: 
 
-		Given an integration pipeline trigger
+		Given a clean code checkout
 		When unit tests fail
 		And integration fails
 		Then the build artifacts are purged
@@ -31,7 +30,7 @@ Feature: continuous integration
 	Scenario Outline:
 
 		Given any application in <environment>
-		When I have active <role> credentials
+		When one has active <role> credentials
 		Then the pipeline grants <access> permission
 
 		Examples:

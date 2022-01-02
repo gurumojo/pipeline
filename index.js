@@ -15,7 +15,10 @@ const pipeline = new ArgumentParser({
 	description: `gurumojo/${name} ${version}`
 })
 
-pipeline.add_argument('-v', '--version', { action: 'version', version })
+pipeline.add_argument('-v', '--version', {
+	action: 'version',
+	version
+})
 pipeline.add_argument('-f', '--features', {
 	action: 'store_true',
 	help: `show a list of ${name} features`

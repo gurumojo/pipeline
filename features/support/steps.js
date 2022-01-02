@@ -3,12 +3,8 @@ const { createHash } = require('crypto')
 const { Given, When, Then } = require('@cucumber/cucumber')
 const assert = require('assert').strict
 
-Then('finally log details', function() {
-	this.infodump()
-})
 
-
-Given('an integration pipeline', function () {
+Given('a healthy {} pipeline', function (type) {
 	this.setStatus('healthy')
 })
 
@@ -18,17 +14,24 @@ Given('a new code submission', function () {
 	this.setCommit(hash.copy().digest('hex').slice(0, 12))
 })
 
-Given('a new code checkout', function () {
-	//	$ git checkout ${this.commit}
-})
-
-Given('an integration pipeline trigger', function () {
-	assert.equal(this.commit.length, 12)
+Given('a clean code checkout', function () {
+	// $ git checkout ${this.commit}
 })
 
 Given('any application in {}', function (environment) {
 	this.setEnvironment(environment)
 })
+
+Given('a newly integrated build', function () {
+	let hash = createHash('sha256')
+	hash.update(String(Date.now()))
+	this.setBuild(hash.copy().digest('hex').slice(0, 12))
+})
+
+Given('a clean deployment', function () {
+	// $ deploy ${this.build}
+})
+
 
 
 When('integration {}', function (state) {
@@ -55,13 +58,45 @@ When('unit tests {}', function (status) {
 	}
 })
 
-When('I have active {} credentials', function (role) {
+When('one has active {} credentials', function (role) {
 	this.setRole(role)
 })
 
+When('automated acceptance tests {}', function (status) {
+	switch (status) {
+		case 'pass':
+			this.setAccepted(true)
+			break
+		case 'fail':
+		default:
+			this.setAccepted(false)
+			this.setStatus('failed')
+	}
+})
 
-Then('the build is saved with the commit hash', function () {
-	assert.ok(this.build === this.commit)
+When('manual acceptance tests {}', function (status) {
+	switch (status) {
+		case 'pass':
+			this.setApproved(true)
+			break
+		case 'fail':
+		default:
+			this.setApproved(false)
+			this.setStatus('failed')
+	}
+})
+
+
+
+Then('the build artifacts are {}', function (action) {
+	switch (action) {
+		case 'saved':
+			assert.ok(this.build === this.commit)
+			break
+		case 'purged':
+		default:
+			assert.ok(!this.build)
+	}
 })
 
 Then('the deployment pipeline is triggered', function () {
@@ -72,24 +107,24 @@ Then('the pipeline status is {}', function (string) {
 	assert.ok(this.status === string)
 })
 
-Then('the build artifacts are purged', function () {
-	assert.ok(!this.build)
-})
-
 Then('the pipeline grants {} permission', function (string) {
 	assert.ok(this.access === string)
 })
 
+Then('a button push triggers release', function () {
+	assert.ok(this.accepted && this.approved)
+	this.setStatus('complete')
+})
 
-//Given('a variable set to {int}', function (number) {
-//	this.setTo(number)
-//})
-//
-//When('I increment the variable by {int}', function (number) {
-//	this.incrementBy(number)
-//})
-//
-//Then('the variable should contain {int}', function (number) {
-//	assert.equal(this.variable, number)
-//})
+Then('the pipeline ends in production', function () {
+	assert.equal(this.status, 'complete')
+})
+
+Then('the pipeline is abandoned', function () {
+	assert.equal(this.status, 'failed')
+})
+
+Then('finally log details', function() {
+	this.infodump()
+})
 

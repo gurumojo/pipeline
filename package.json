@@ -22,7 +22,7 @@
   },
   "scripts": {
     "build": "echo; echo Hello World; echo",
-	"scenario": "npx cucumber-js -c ./.cucumber.js",
+    "scenario": "npx cucumber-js -c ./.cucumber.js",
     "test": "npx jest"
   },
   "main": "index.js"

@@ -17,11 +17,13 @@ class CustomWorld extends World {
 
 	constructor(options) {
 		super(options)
+		this.accepted = null
+		this.approved = null
 		this.build = ''
 		this.clone = 'git clone git@github.com:gurumojo/pipeline.git'
 		this.commit = ''
 		this.deploy = false
-		this.environment = 'development'
+		this.environment = ''
 		this.role = ''
 		this.source = null
 		this.status = 'pending'
@@ -30,6 +32,14 @@ class CustomWorld extends World {
 
 	infodump() {
 		console.log(JSON.stringify(this, null, 2))
+	}
+
+	setAccepted(bool) {
+		this.accepted = bool
+	}
+
+	setApproved(bool) {
+		this.approved = bool
 	}
 
 	setBuild(string) {
@@ -46,23 +56,20 @@ class CustomWorld extends World {
 
 	setEnvironment(string) {
 		this.environment = string
+		try {
+			this.access = access[this.role][string]
+		} catch (error) {}
 	}
 
 	setRole(string) {
 		this.role = string
-		this.access = access[string][this.environment]
+		try {
+			this.access = access[string][this.environment]
+		} catch (error) {}
 	}
 
 	setStatus(string) {
 		this.status = string
-	}
-
-	setTo(number) {
-		this.variable = number
-	}
-
-	incrementBy(number) {
-		this.variable += number
 	}
 }
 
