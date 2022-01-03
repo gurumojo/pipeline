@@ -72,9 +72,7 @@ jobs:
         name: integration
 
     - name: Unpack tarball
-      run: |
-        tar -xf integration-${{ matrix.node-version }}-${{ github.sha }}.tar
-        tree node_modules
+      run: tar -xf integration-${{ matrix.node-version }}-${{ github.sha }}.tar
 
     - name: Use node ${{ matrix.node-version }}
       uses: actions/setup-node@v2
@@ -146,6 +144,14 @@ jobs:
 
     steps:
 
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: integration
+
+    - name: Unpack tarball
+      run: tar -xf integration-${{ matrix.node-version }}-${{ github.sha }}.tar
+
     - name: Use node 14.x
       uses: actions/setup-node@v2
       with:
@@ -172,7 +178,7 @@ jobs:
       uses: actions/download-artifact@v2
 
     - name: Debug logging
-      run: 'ls -l *'
+      run: tree .
 
 
   #issue:
