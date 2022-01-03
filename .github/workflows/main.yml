@@ -54,116 +54,116 @@ jobs:
         path: integration-${{ matrix.node-version }}-${{ github.sha }}.tar
 
 
- # acceptance:
+  acceptance:
 
- #   needs: integration
+    needs: integration
 
- #   runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
- #   strategy:
- #     matrix:
- #       node-version: [ 12.x, 14.x, 16.x ]
+    strategy:
+      matrix:
+        node-version: [ 12.x, 14.x, 16.x ]
 
- #   steps:
+    steps:
 
- #   - name: Download artifacts
- #     uses: actions/download-artifact@v2
- #     with:
- #       name: integration
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: integration
 
- #   - name: Unpack tarball
- #     run: tar -xf integration-${{ matrix.node-version }}-${{ github.sha }}.tar
+    - name: Unpack tarball
+      run: tar -xf integration-${{ matrix.node-version }}-${{ github.sha }}.tar
 
- #   - name: Use node ${{ matrix.node-version }}
- #     uses: actions/setup-node@v2
- #     with:
- #       node-version: ${{ matrix.node-version }}
- #       cache: 'npm'
+    - name: Use node ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
 
- #   - name: Run acceptance scenarios
- #     run: npm run scenario | tee acceptance.log
+    - name: Run acceptance scenarios
+      run: npm run scenario | tee acceptance.log
 
- #   - name: Upload artifacts
- #     uses: actions/upload-artifact@v2
- #     with:
- #       name: acceptance-${{ matrix.node-version }}-${{ github.sha }}
- #       path: acceptance.log
-
-
- # capacity:
-
- #   needs: integration
-
- #   runs-on: ubuntu-latest
-
- #   strategy:
- #     matrix:
- #       node-version: [ 12.x, 14.x, 16.x ]
-
- #   steps:
-
- #   - name: Download artifacts
- #     uses: actions/download-artifact@v2
- #     with:
- #       name: integration
-
- #   - name: Unpack tarball
- #     run: |
- #       tar -xf integration-${{ matrix.node-version }}-${{ github.sha }}.tar
- #       cat version
-
- #   - name: Use node ${{ matrix.node-version }}
- #     uses: actions/setup-node@v2
- #     with:
- #       node-version: ${{ matrix.node-version }}
- #       cache: 'npm'
-
- #   - name: Run capacity scenarios
- #   - run: npm run capacity --if-present | tee -a capacity.log
-
- #   - name: Upload artifacts
- #     uses: actions/upload-artifact@v2
- #     with:
- #       name: capacity-${{ matrix.node-version }}-${{ github.sha }}
- #       path: capacity.log
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: acceptance-${{ matrix.node-version }}-${{ github.sha }}
+        path: acceptance.log
 
 
- # deployment:
+  capacity:
 
- #   needs: [ acceptance, capacity ]
+    needs: integration
 
- #   runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
- #   concurrency:
- #     group: ${{ github.head_ref }}
- #     cancel-in-progress: true
+    strategy:
+      matrix:
+        node-version: [ 12.x, 14.x, 16.x ]
 
- #   steps:
+    steps:
 
- #   - name: Use node 14.x
- #     uses: actions/setup-node@v2
- #     with:
- #       node-version: ${{ matrix.node-version }}
- #       cache: 'npm'
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: integration
+
+    - name: Unpack tarball
+      run: |
+        tar -xf integration-${{ matrix.node-version }}-${{ github.sha }}.tar
+        cat version
+
+    - name: Use node ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Run capacity scenarios
+    - run: npm run capacity --if-present | tee -a capacity.log
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: capacity-${{ matrix.node-version }}-${{ github.sha }}
+        path: capacity.log
 
 
- # release:
+  deployment:
 
- #   needs: deployment
+    needs: [ acceptance, capacity ]
 
- #   runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
- #   concurrency:
- #     group: ${{ github.head_ref }}
- #     cancel-in-progress: true
+    concurrency:
+      group: ${{ github.head_ref }}
+      cancel-in-progress: true
 
- #   steps:
+    steps:
 
- #   - name: Download artifacts
- #     uses: actions/download-artifact@v2
+    - name: Use node 14.x
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
 
- #   - name: Debug logging
- #     run: 'ls -l *'
+
+  release:
+
+    needs: deployment
+
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: ${{ github.head_ref }}
+      cancel-in-progress: true
+
+    steps:
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+
+    - name: Debug logging
+      run: 'ls -l *'
 
 
   #issue:
