@@ -72,7 +72,9 @@ jobs:
         name: integration
 
     - name: Unpack tarball
-      run: tar -xf integration-${{ matrix.node-version }}-${{ github.sha }}.tar
+      run: |
+        tar -xf integration-${{ matrix.node-version }}-${{ github.sha }}.tar
+        ls -la . node_modules/.bin
 
     - name: Use node ${{ matrix.node-version }}
       uses: actions/setup-node@v2
