@@ -13,6 +13,19 @@ const access = {
 	}
 }
 
+const usage = {
+	public: {
+		development: 'none',
+		integration: 'none',
+		production: 'general'
+	},
+	private: {
+		development: 'open',
+		integration: 'guided',
+		production: 'admin'
+	}
+}
+
 const status = [
 	'cancelled',
 	'failure',
@@ -31,6 +44,7 @@ class CustomWorld extends World {
 		this.commit = ''
 		this.deploy = false
 		this.environment = ''
+		this.network = ''
 		this.role = ''
 		this.source = null
 		this.status = 'pending'
@@ -68,6 +82,13 @@ class CustomWorld extends World {
 		} catch (error) {}
 	}
 
+	setNetwork(string) {
+		this.network = string
+		try {
+			this.usage = usage[string][this.environment]
+		} catch (error) {}
+	}
+
 	setRole(string) {
 		this.role = string
 		try {
@@ -77,6 +98,10 @@ class CustomWorld extends World {
 
 	setStatus(string) {
 		this.status = string
+	}
+
+	setUsage(string) {
+		this.usage = string
 	}
 }
 

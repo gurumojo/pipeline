@@ -32,6 +32,14 @@ Given('a clean deployment', function () {
 	// $ deploy ${this.build}
 })
 
+Given('varying environment deployments', function () {
+	// dev, int, prd
+})
+
+Given('varying rules in each environment', function () {
+	// setting boundaries
+})
+
 
 
 When('integration {}', function (state) {
@@ -86,6 +94,10 @@ When('manual acceptance tests {}', function (status) {
 	}
 })
 
+When('one uses apps from a {}', function (network) {
+	this.setNetwork(network)
+})
+
 
 
 Then('the build artifacts are {}', function (action) {
@@ -108,7 +120,7 @@ Then('the pipeline status is {}', function (string) {
 })
 
 Then('the pipeline grants {} permission', function (string) {
-	assert.ok(this.access === string)
+	assert.ok(this.access === string || this.usage === string)
 })
 
 Then('a button push triggers release', function () {
