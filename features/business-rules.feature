@@ -2,7 +2,7 @@ Feature: business rules
 
 	To ensure quality, security, and value
 	As a software development stakeholder
-	One prefers testing rules automatically
+	One prefers testing assertions automatically
 
 	Background:
 

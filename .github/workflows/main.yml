@@ -1,16 +1,15 @@
 
 name: CI-CD
 
+env:
+  COMMIT: ${{ github.sha }}
+  NODE_ENV: 'production'
+
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-
-env:
-  COMMIT: ${{ github.sha }}
-  NODE_ENV: 'production'
-
 
 jobs:
 
@@ -20,7 +19,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 16.x]
+        node-version: [ 12.x, 14.x, 16.x ]
 
     steps:
 
@@ -45,7 +44,8 @@ jobs:
     - name: Create tarball
       run: |
         echo ${{ github.sha }} > version
-        tar -cvf integration-${{ matrix.node-version }}-${{ github.sha }}.tar ./*
+		rm -rf .git .github .gitignore
+        tar -cvf integration-${{ matrix.node-version }}-${{ github.sha }}.tar .
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
@@ -62,7 +62,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 16.x]
+        node-version: [ 12.x, 14.x, 16.x ]
 
     steps:
 
@@ -98,7 +98,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 16.x]
+        node-version: [ 12.x, 14.x, 16.x ]
 
     steps:
 
@@ -163,7 +163,7 @@ jobs:
       uses: actions/download-artifact@v2
 
     - name: Debug logging
-      run: ls -l *
+      run: 'ls -l *'
 
 
   #issue:
