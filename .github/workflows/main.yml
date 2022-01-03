@@ -121,7 +121,7 @@ jobs:
         cache: 'npm'
 
     - name: Run capacity scenarios
-    - run: npm run capacity --if-present
+      run: npm run capacity --if-present
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
@@ -200,4 +200,23 @@ jobs:
   #        "body": "pipeline workflow: **${{ github.workflow }}** \n\n code commit hash: _${{ github.sha }}_."
   #        }' \
   #      --fail
+
+#
+#permissions:
+#  actions: read|write|none
+#  checks: read|write|none
+#  contents: read|write|none
+#  deployments: read|write|none
+#  id-token: read|write|none
+#  issues: read|write|none
+#  discussions: read|write|none
+#  packages: read|write|none
+#  pages: read|write|none
+#  pull-requests: read|write|none
+#  repository-projects: read|write|none
+#  security-events: read|write|none
+#  statuses: read|write|none
+#
+# When specifying some, all of those that are not specified are set to none.
+#
 
