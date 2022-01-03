@@ -32,19 +32,3 @@ Feature: continuous deployment
 		Then manual acceptance tests are skipped
 		And the pipeline is abandoned
 
-
-	Scenario Outline:
-
-		Given any application in <environment>
-		When one has active <role> credentials
-		Then the pipeline grants <access> permission
-
-		Examples:
-			| environment | role  | access |
-			| development | admin | write  |
-			| development | user  | read   |
-			| integration | admin | read   |
-			| integration | user  | zero   |
-			| production  | admin | read   |
-			| production  | user  | zero   |
-
