@@ -13,6 +13,13 @@ const access = {
 	}
 }
 
+const status = [
+	'cancelled',
+	'failure',
+	'skipped',
+	'success'
+]
+
 class CustomWorld extends World {
 
 	constructor(options) {

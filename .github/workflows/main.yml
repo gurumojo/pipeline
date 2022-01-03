@@ -1,0 +1,189 @@
+
+name: CI-CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  COMMIT: ${{ github.sha }}
+  NODE_ENV: 'production'
+
+
+jobs:
+
+  integration:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x, 14.x, 16.x]
+
+    steps:
+
+    - name: Checkout code updates
+      uses: actions/checkout@v2
+
+    - name: Use node ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Clone dependencies
+      run: npm ci | tee integration.log
+
+    - name: Build artifacts
+      run: npm run build --if-present | tee -a integration.log
+
+    - name: Run unit tests
+      run: npm test | tee -a integration.log
+
+    - name: Create tarball
+      run: |
+        echo ${{ github.sha }} > version
+        tar -cvf integration-${{ matrix.node-version }}-${{ github.sha }}.tar ./*
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: integration
+        path: integration-${{ matrix.node-version }}-${{ github.sha }}.tar
+
+
+  acceptance:
+
+    needs: integration
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x, 14.x, 16.x]
+
+    steps:
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: integration
+
+    - name: Unpack tarball
+      run: tar -xf integration-${{ matrix.node-version }}-${{ github.sha }}.tar
+
+    - name: Use node ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Run acceptance scenarios
+      run: npm run scenario | tee acceptance.log
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: acceptance-${{ matrix.node-version }}-${{ github.sha }}
+        path: acceptance.log
+
+
+  capacity:
+
+    needs: integration
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x, 14.x, 16.x]
+
+    steps:
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: integration
+
+    - name: Unpack tarball
+      run: |
+        tar -xf integration-${{ matrix.node-version }}-${{ github.sha }}.tar
+        cat version
+
+    - name: Use node ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Run capacity scenarios
+    - run: npm run capacity --if-present | tee -a capacity.log
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: capacity-${{ matrix.node-version }}-${{ github.sha }}
+        path: capacity.log
+
+
+  deployment:
+
+    needs: [ acceptance, capacity ]
+
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: ${{ github.head_ref }}
+      cancel-in-progress: true
+
+    steps:
+
+    - name: Use node 14.x
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+
+  release:
+
+    needs: deployment
+
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: ${{ github.head_ref }}
+      cancel-in-progress: true
+
+    steps:
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+
+    - name: Debug logging
+      run: ls -l *
+
+
+  #issue:
+
+  #  runs-on: ubuntu-latest 
+
+  #  permissions:
+  #    issues: write 
+
+  #  steps:
+
+  #  - name: Create issue via REST API
+  #    run: |
+  #      curl --request POST \
+  #      --url https://api.github.com/repos/${{ github.repository }}/issues \
+  #      --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+  #      --header 'content-type: application/json' \
+  #      --data '{
+  #        "title": "Automated issue for commit: ${{ github.sha }}",
+  #        "body": "pipeline workflow: **${{ github.workflow }}** \n\n code commit hash: _${{ github.sha }}_."
+  #        }' \
+  #      --fail
+
