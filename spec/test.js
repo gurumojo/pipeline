@@ -23,7 +23,18 @@ describe('pipeline', () => {
 		}
 		return { ArgumentParser }
 	})
+
 	const subjectUnderTest = require('../cli')
+
+	const originalConsole = console
+
+	beforeAll(() => {
+		console.log = () => {}
+	})
+
+	afterAll(() => {
+		console.log = originalConsole.log
+	})
 
 	it('contains executable feature descriptions', () => {
 		const gherkin = /feature$/
