@@ -3,7 +3,7 @@ name: CI-CD
 
 env:
   COMMIT: ${{ github.sha }}
-  NODE_ENV: 'development'
+  NODE_ENV: 'production'
 
 on:
   push:
@@ -34,6 +34,8 @@ jobs:
 
     - name: Clone dependencies
       run: npm ci
+      env:
+        NODE_ENV: 'development'
 
     - name: Build artifacts
       run: npm run build --if-present
@@ -168,9 +170,6 @@ jobs:
     #concurrency:
     #  group: ${{ github.head_ref }}
     #  cancel-in-progress: true
-
-    env:
-      NODE_ENV: 'production'
 
     steps:
 
