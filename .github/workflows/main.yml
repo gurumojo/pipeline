@@ -3,7 +3,7 @@ name: CI-CD
 
 env:
   COMMIT: ${{ github.sha }}
-  NODE_ENV: 'production'
+  NODE_ENV: 'development'
 
 on:
   push:
@@ -141,6 +141,9 @@ jobs:
     #  group: ${{ github.head_ref }}
     #  cancel-in-progress: true
 
+    env:
+      NODE_ENV: 'integration'
+
     steps:
 
     - name: Use node 14.x
@@ -159,6 +162,9 @@ jobs:
     #concurrency:
     #  group: ${{ github.head_ref }}
     #  cancel-in-progress: true
+
+    env:
+      NODE_ENV: 'production'
 
     steps:
 
