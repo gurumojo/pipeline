@@ -133,12 +133,13 @@ jobs:
   deployment:
 
     needs: [ acceptance, capacity ]
-    #needs: acceptance
 
     runs-on: ubuntu-latest
 
+    environment: acceptance
+
     #concurrency:
-    #  group: ${{ github.head_ref }}
+    #  group: acceptance
     #  cancel-in-progress: true
 
     env:
@@ -167,8 +168,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    environment: production
+
     #concurrency:
-    #  group: ${{ github.head_ref }}
+    #  group: acceptance
     #  cancel-in-progress: true
 
     steps:
