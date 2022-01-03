@@ -128,23 +128,23 @@ jobs:
   #      path: capacity.log
 
 
-  #deployment:
+  deployment:
 
-  #  needs: [ acceptance, capacity ]
+    #needs: [ acceptance, capacity ]
 
-  #  runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-  #  concurrency:
-  #    group: ${{ github.head_ref }}
-  #    cancel-in-progress: true
+    concurrency:
+      group: ${{ github.head_ref }}
+      cancel-in-progress: true
 
-  #  steps:
+    steps:
 
-  #  - name: Use node 14.x
-  #    uses: actions/setup-node@v2
-  #    with:
-  #      node-version: ${{ matrix.node-version }}
-  #      cache: 'npm'
+    - name: Use node 14.x
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
 
 
   release:
