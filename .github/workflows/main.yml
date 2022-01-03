@@ -150,7 +150,7 @@ jobs:
         name: integration
 
     - name: Unpack tarball
-      run: tar -xf integration-${{ matrix.node-version }}-${{ github.sha }}.tar
+      run: tar -xf integration-14.x-${{ github.sha }}.tar
 
     - name: Use node 14.x
       uses: actions/setup-node@v2
