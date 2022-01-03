@@ -1,9 +1,9 @@
 
 name: CI-CD
 
-env:
-  COMMIT: ${{ github.sha }}
-  NODE_ENV: 'production'
+#env:
+#  COMMIT: ${{ github.sha }}
+#  NODE_ENV: 'production'
 
 on:
   push:
