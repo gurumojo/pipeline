@@ -47,13 +47,13 @@ jobs:
       run: |
         echo ${{ github.sha }} > version
         rm -rf .git .github .gitignore
-        tar -cvf integration-${{ matrix.node-version }}-${{ github.sha }}.tar .
+        tar -cvf build-${{ matrix.node-version }}-${{ github.sha }}.tar .
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: integration
-        path: integration-${{ matrix.node-version }}-${{ github.sha }}.tar
+        name: builds
+        path: build-${{ matrix.node-version }}-${{ github.sha }}.tar
 
 
   acceptance:
@@ -71,10 +71,10 @@ jobs:
     - name: Download artifacts
       uses: actions/download-artifact@v2
       with:
-        name: integration
+        name: builds
 
     - name: Unpack tarball
-      run: tar -xf integration-${{ matrix.node-version }}-${{ github.sha }}.tar
+      run: tar -xf build-${{ matrix.node-version }}-${{ github.sha }}.tar
 
     - name: Use node ${{ matrix.node-version }}
       uses: actions/setup-node@v2
@@ -92,48 +92,48 @@ jobs:
         path: acceptance.log
 
 
-  #capacity:
+  capacity:
 
-  #  needs: integration
+    needs: integration
 
-  #  runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-  #  strategy:
-  #    matrix:
-  #      node-version: [ 12.x, 14.x, 16.x ]
+    strategy:
+      matrix:
+        node-version: [ 12.x, 14.x, 16.x ]
 
-  #  steps:
+    steps:
 
-  #  - name: Download artifacts
-  #    uses: actions/download-artifact@v2
-  #    with:
-  #      name: integration
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: builds
 
-  #  - name: Unpack tarball
-  #    run: |
-  #      tar -xf integration-${{ matrix.node-version }}-${{ github.sha }}.tar
-  #      cat version
+    - name: Unpack tarball
+      run: |
+        tar -xf build-${{ matrix.node-version }}-${{ github.sha }}.tar
+        cat version
 
-  #  - name: Use node ${{ matrix.node-version }}
-  #    uses: actions/setup-node@v2
-  #    with:
-  #      node-version: ${{ matrix.node-version }}
-  #      cache: 'npm'
+    - name: Use node ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
 
-  #  - name: Run capacity scenarios
-  #  - run: npm run capacity --if-present
+    - name: Run capacity scenarios
+    - run: npm run capacity --if-present
 
-  #  - name: Upload artifacts
-  #    uses: actions/upload-artifact@v2
-  #    with:
-  #      name: capacity-${{ matrix.node-version }}-${{ github.sha }}
-  #      path: capacity.log
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: capacity-${{ matrix.node-version }}-${{ github.sha }}
+        path: capacity.log
 
 
   deployment:
 
-    #needs: [ acceptance, capacity ]
-    needs: acceptance
+    needs: [ acceptance, capacity ]
+    #needs: acceptance
 
     runs-on: ubuntu-latest
 
@@ -149,10 +149,10 @@ jobs:
     - name: Download artifacts
       uses: actions/download-artifact@v2
       with:
-        name: integration
+        name: builds
 
     - name: Unpack tarball
-      run: tar -xf integration-14.x-${{ github.sha }}.tar
+      run: tar -xf build-14.x-${{ github.sha }}.tar
 
     - name: Use node 14.x
       uses: actions/setup-node@v2
