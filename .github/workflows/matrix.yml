@@ -1,0 +1,225 @@
+
+name: Matrix Workflow
+
+env:
+  COMMIT: ${{ github.sha }}
+  NODE_ENV: 'production'
+
+on:
+  push:
+    branches: [ matrix ]
+  pull_request:
+    branches: [ matrix ]
+
+jobs:
+
+  integration:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [ 12.x, 14.x, 16.x ]
+
+    steps:
+
+    - name: Checkout code updates
+      uses: actions/checkout@v2
+
+    - name: Use node ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Clone dependencies
+      run: npm ci
+      env:
+        NODE_ENV: 'development'
+
+    - name: Build artifacts
+      run: npm run build --if-present
+
+    - name: Run unit tests
+      run: npm test
+
+    - name: Create tarball
+      run: |
+        echo ${{ github.sha }} > version
+        rm -rf .git .github .gitignore
+        tar -cvf build-${{ matrix.node-version }}-${{ github.sha }}.tar .
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: builds
+        path: build-${{ matrix.node-version }}-${{ github.sha }}.tar
+
+
+  acceptance:
+
+    needs: integration
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [ 12.x, 14.x, 16.x ]
+
+    steps:
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: builds
+
+    - name: Unpack tarball
+      run: tar -xf build-${{ matrix.node-version }}-${{ github.sha }}.tar
+
+    - name: Use node ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Run acceptance scenarios
+      run: npm run scenario
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: acceptance-${{ matrix.node-version }}-${{ github.sha }}
+        path: acceptance.log
+
+
+  capacity:
+
+    needs: integration
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [ 12.x, 14.x, 16.x ]
+
+    steps:
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: builds
+
+    - name: Unpack tarball
+      run: |
+        tar -xf build-${{ matrix.node-version }}-${{ github.sha }}.tar
+        cat version
+
+    - name: Use node ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Run capacity scenarios
+      run: npm run capacity --if-present
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: capacity-${{ matrix.node-version }}-${{ github.sha }}
+        path: capacity.log
+
+
+  deployment:
+
+    needs: [ acceptance, capacity ]
+
+    runs-on: ubuntu-latest
+
+    environment: acceptance
+
+    #concurrency:
+    #  group: acceptance
+    #  cancel-in-progress: true
+
+    env:
+      NODE_ENV: 'integration'
+
+    steps:
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: builds
+
+    - name: Unpack tarball
+      run: tar -xf build-14.x-${{ github.sha }}.tar
+
+    - name: Use node 14.x
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+
+  release:
+
+    needs: deployment
+
+    runs-on: ubuntu-latest
+
+    environment: production
+
+    #concurrency:
+    #  group: acceptance
+    #  cancel-in-progress: true
+
+    steps:
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v2
+
+    - name: Debug logging
+      run: tree .
+
+
+  #issue:
+
+  #  runs-on: ubuntu-latest 
+
+  #  permissions:
+  #    issues: write 
+
+  #  steps:
+
+  #  - name: Create issue via REST API
+  #    run: |
+  #      curl --request POST \
+  #      --url https://api.github.com/repos/${{ github.repository }}/issues \
+  #      --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+  #      --header 'content-type: application/json' \
+  #      --data '{
+  #        "title": "Automated issue for commit: ${{ github.sha }}",
+  #        "body": "pipeline workflow: **${{ github.workflow }}** \n\n code commit hash: _${{ github.sha }}_."
+  #        }' \
+  #      --fail
+
+#
+#permissions:
+#  actions: read|write|none
+#  checks: read|write|none
+#  contents: read|write|none
+#  deployments: read|write|none
+#  id-token: read|write|none
+#  issues: read|write|none
+#  discussions: read|write|none
+#  packages: read|write|none
+#  pages: read|write|none
+#  pull-requests: read|write|none
+#  repository-projects: read|write|none
+#  security-events: read|write|none
+#  statuses: read|write|none
+#
+# When specifying some, all of those that are not specified are set to none.
+#
+
