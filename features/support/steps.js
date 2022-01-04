@@ -141,6 +141,10 @@ Then('the pipeline is abandoned', function () {
 	assert.equal(this.status, 'failure')
 })
 
+Then('views should load within {}', function (time) {
+	// in seconds
+})
+
 Then('finally log details', function() {
 	this.infodump()
 })

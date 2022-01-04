@@ -39,3 +39,17 @@ Feature: business rules
 			| production  | public  | user  |
 			| production  | private | admin |
 
+	Scenario Outline:
+
+		Given any application in <environment>
+		When one uses apps from a <region>
+		Then views should load within <time>
+
+		Examples:
+			| environment | region  | time |
+			| development | local   | 1s   |
+			| acceptance  | local   | 2s   |
+			| acceptance  | remote  | 3s   |
+			| production  | local   | 2s   |
+			| production  | remote  | 3s   |
+
