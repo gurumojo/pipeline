@@ -1,10 +1,9 @@
 {
   "name": "pipeline",
   "description": "CI/CD resources",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "theguy@gurumojo.net",
   "license": "ISC",
-  "private": true,
   "homepage": "https://github.com/gurumojo/pipeline#readme",
   "repository": {
     "type": "git",
@@ -14,14 +13,15 @@
     "url": "https://github.com/gurumojo/pipeline/issues"
   },
   "dependencies": {
-    "argparse": "^2.0.1"
+    "argparse": "2.0.1"
   },
   "devDependencies": {
-    "@cucumber/cucumber": "^8.0.0-rc.1",
-    "jest": "^27.4.5"
+    "@cucumber/cucumber": "8.0.0-rc.1",
+    "jest": "27.4.5"
   },
   "scripts": {
     "build": "echo; echo Hello World; echo",
+    "capacity": "echo; echo Unleash Chaos Monkey; echo",
     "scenario": "npx cucumber-js -c ./.cucumber.js",
     "test": "npx jest"
   },
