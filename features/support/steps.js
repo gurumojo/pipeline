@@ -14,10 +14,6 @@ Given('a new code submission', function () {
 	this.setCommit(hash.copy().digest('hex').slice(0, 12))
 })
 
-Given('a clean code checkout', function () {
-	// $ git checkout ${this.commit}
-})
-
 Given('any application in {}', function (environment) {
 	this.setEnvironment(environment)
 })
@@ -28,10 +24,6 @@ Given('a newly integrated build', function () {
 	this.setBuild(hash.copy().digest('hex').slice(0, 12))
 })
 
-Given('a clean deployment', function () {
-	// $ deploy ${this.build}
-})
-
 Given('varying environment deployments', function () {
 	// dev, int, prd
 })
@@ -40,20 +32,16 @@ Given('varying rules in each environment', function () {
 	// setting boundaries
 })
 
-
-
-When('integration {}', function (state) {
-	switch (state) {
-		case 'succeeds':
-			this.setBuild(this.commit)
-			this.setStatus('success')
-			break
-		case 'fails':
-		default:
-			this.setBuild(null)
-			this.setStatus('failed')
-	}
+Then('a button push triggers deployment', function () {
+	this.setDeploy(true)
 })
+
+Then('the pipeline awaits final approval', function () {
+	// manual process gate
+})
+
+
+
 
 When('unit tests {}', function (status) {
 	switch (status) {
@@ -63,6 +51,17 @@ When('unit tests {}', function (status) {
 		case 'fail':
 		default:
 			this.setDeploy(false)
+	}
+})
+
+When('the build artifacts are {}', function (action) {
+	switch (action) {
+		case 'saved':
+			this.setBuild(this.commit)
+			break
+		case 'purged':
+		default:
+			this.setBuild(null)
 	}
 })
 
@@ -78,7 +77,7 @@ When('automated acceptance tests {}', function (status) {
 		case 'fail':
 		default:
 			this.setAccepted(false)
-			this.setStatus('failed')
+			this.setStatus('faillure')
 	}
 })
 
@@ -90,7 +89,7 @@ When('manual acceptance tests {}', function (status) {
 		case 'fail':
 		default:
 			this.setApproved(false)
-			this.setStatus('failed')
+			this.setStatus('failure')
 	}
 })
 
@@ -100,19 +99,25 @@ When('one uses apps from a {}', function (network) {
 
 
 
-Then('the build artifacts are {}', function (action) {
-	switch (action) {
-		case 'saved':
+Then('the deployment pipeline is triggered', function () {
+	assert.ok(this.deploy)
+})
+
+Then('integration is a {}', function (state) {
+	switch (state) {
+		case 'success':
 			assert.ok(this.build === this.commit)
+			this.setStatus('success')
 			break
-		case 'purged':
+		case 'failure':
 		default:
 			assert.ok(!this.build)
+			this.setStatus('failure')
 	}
 })
 
-Then('the deployment pipeline is triggered', function () {
-	assert.ok(this.deploy)
+Then('the job status is {}', function (string) {
+	assert.ok(this.status === string)
 })
 
 Then('the pipeline status is {}', function (string) {
@@ -125,15 +130,15 @@ Then('the pipeline grants {} permission', function (string) {
 
 Then('a button push triggers release', function () {
 	assert.ok(this.accepted && this.approved)
-	this.setStatus('complete')
+	this.setStatus('success')
 })
 
 Then('the pipeline ends in production', function () {
-	assert.equal(this.status, 'complete')
+	assert.equal(this.status, 'success')
 })
 
 Then('the pipeline is abandoned', function () {
-	assert.equal(this.status, 'failed')
+	assert.equal(this.status, 'failure')
 })
 
 Then('finally log details', function() {

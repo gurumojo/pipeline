@@ -12,7 +12,19 @@ Feature: continuous deployment
 
 	Scenario: 
 
-		Given a clean deployment
+		When automated acceptance tests pass
+		Then a button push triggers deployment
+		And the pipeline awaits final approval
+
+	Scenario: 
+
+		When automated acceptance tests fail
+		Then manual acceptance tests are skipped
+		And the build artifacts are purged
+		And the pipeline is abandoned
+
+	Scenario: 
+
 		When automated acceptance tests pass
 		And manual acceptance tests pass
 		Then a button push triggers release
@@ -20,15 +32,7 @@ Feature: continuous deployment
 
 	Scenario: 
 
-		Given a clean deployment
-		When automated acceptance tests pass
-		And manual acceptance tests fail
-		Then the pipeline is abandoned
-
-	Scenario: 
-
-		Given a clean deployment
-		When automated acceptance tests fail
-		Then manual acceptance tests are skipped
+		When manual acceptance tests fail
+		Then the build artifacts are purged
 		And the pipeline is abandoned
 

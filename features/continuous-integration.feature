@@ -12,17 +12,22 @@ Feature: continuous integration
 
 	Scenario: 
 
-		Given a clean code checkout
 		When unit tests pass
-		And integration succeeds
-		Then the build artifacts are saved
-		And the deployment pipeline is triggered
+		And the build artifacts are saved
+		Then integration is a success
+		And the job status is success
 
 	Scenario: 
 
-		Given a clean code checkout
+		When unit tests pass
+		And the build artifacts are purged
+		Then integration is a failure
+		And the job status is failure
+
+	Scenario: 
+
 		When unit tests fail
-		And integration fails
-		Then the build artifacts are purged
-		And the pipeline status is failed
+		And the build artifacts are purged
+		Then integration is a failure
+		And the job status is failure
 

@@ -3,25 +3,26 @@ const { setWorldConstructor, World } = require('@cucumber/cucumber')
 const access = {
 	admin: {
 		development: 'write',
-		integration: 'read',
+		acceptance: 'read',
 		production: 'read'
 	},
 	user: {
 		development: 'read',
-		integration: 'zero',
+		acceptance: 'zero',
 		production: 'zero'
 	}
 }
 
 const usage = {
+	local: {
+		development: 'admin'
+	},
 	public: {
-		development: 'none',
-		integration: 'none',
-		production: 'general'
+		acceptance: 'zero',
+		production: 'user'
 	},
 	private: {
-		development: 'open',
-		integration: 'guided',
+		acceptance: 'user',
 		production: 'admin'
 	}
 }

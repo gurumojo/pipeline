@@ -20,8 +20,8 @@ Feature: business rules
 			| environment | role  | access |
 			| development | admin | write  |
 			| development | user  | read   |
-			| integration | admin | read   |
-			| integration | user  | zero   |
+			| acceptance  | admin | read   |
+			| acceptance  | user  | zero   |
 			| production  | admin | read   |
 			| production  | user  | zero   |
 
@@ -32,11 +32,10 @@ Feature: business rules
 		Then the pipeline grants <usage> permission
 
 		Examples:
-			| environment | network | usage   |
-			| development | public  | none    |
-			| development | private | open    |
-			| integration | public  | none    |
-			| integration | private | guided  | 
-			| production  | public  | general |
-			| production  | private | admin   |
+			| environment | network | usage |
+			| development | local   | admin |
+			| acceptance  | public  | zero  |
+			| acceptance  | private | user  |
+			| production  | public  | user  |
+			| production  | private | admin |
 
