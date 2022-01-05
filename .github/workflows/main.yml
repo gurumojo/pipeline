@@ -8,15 +8,17 @@ env:
 
 on:
   push:
-    branches: [ xxxxxxx ]
+    branches: [ main ]
   pull_request:
-    branches: [ xxxxxxx ]
+    branches: [ main ]
 
 jobs:
 
   integration:
 
     runs-on: ubuntu-latest
+
+    environment: storage
 
     steps:
 
@@ -29,39 +31,50 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
 
+    - name: Enable pipefail
+      run: set -o pipefail
+
     - name: Clone dependencies
-      run: |
-        set -o pipefail
-        npm ci | tee -a integration.log
-        set +o pipefail
+      run: npm ci | tee -a integration.log
       env:
         NODE_ENV: 'development'
 
     - name: Build artifacts
-      run: |
-        set -o pipefail
-        npm run build --if-present
-        set +o pipefail
+      run: npm run build | tee -a integration.log
 
     - name: Run unit tests
-      run: |
-        set -o pipefail
-        npm test
-        set +o pipefail
+      run: npm test | tee -a integration.log
 
     - name: Create tarball
       run: |
         echo ${{ github.sha }} > version
         rm -rf .git .github .gitignore
-        set -o pipefail
         tar -cvf build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar . | tee -a integration.log
-        set +o pipefail
+
+    - name: Disable pipefail
+      run: set +o pipefail
+
+    - name: Configure Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-region: us-west-2
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        #role-external-id: ${{ secrets.AWS_ROLE_EXTERNAL_ID }}
+        #role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+        #mask-aws-account-id: true
+        #role-duration-seconds: 300
+        #role-session-name: GitHubActions
+        #role-skip-session-tagging: true
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: builds
-        path: build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar
+      run: aws s3 cp . s3://${{ secrets.STORAGE_BUCKET }}/${{ github.sha }} --recursive --exclude "*" --include "*.log" --include "*.tar"
+
+    #- name: Upload artifacts
+    #  uses: actions/upload-artifact@v2
+    #  with:
+    #    name: builds
+    #    path: build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar
 
 
   acceptance:
@@ -70,18 +83,27 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    environment: storage
+
     steps:
 
-    - name: Download artifacts
-      uses: actions/download-artifact@v2
-      with:
-        name: builds
+    #- name: Download artifacts
+    #  uses: actions/download-artifact@v2
+    #  with:
+    #    name: builds
 
-    - name: Unpack tarball
-      run: |
-        set -o pipefail
-        tar -xf build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar | tee -a acceptance.log
-        set +o pipefail
+    - name: Configure Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-region: us-west-2
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    - name: Download artifacts
+      run: aws s3 sync s3://${{ secrets.STORAGE_BUCKET }}/${{ github.sha }} .
+
+    #- name: Unpack tarball
+    #  run: tar -xf build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
@@ -93,13 +115,15 @@ jobs:
       run: |
         set -o pipefail
         npm run scenario | tee -a acceptance.log
-        set +o pipefail
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: acceptance-${{ env.NODE_VERSION }}-${{ github.sha }}
-        path: acceptance.log
+      run: aws s3 sync . s3://${{ secrets.STORAGE_BUCKET }}/${{ github.sha }}
+
+    #- name: Upload artifacts
+    #  uses: actions/upload-artifact@v2
+    #  with:
+    #    name: acceptance-${{ env.NODE_VERSION }}-${{ github.sha }}
+    #    path: acceptance.log
 
 
   capacity:
@@ -117,9 +141,7 @@ jobs:
 
     - name: Unpack tarball
       run: |
-        set -o pipefail
         tar -xf build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar | tee -a capacity.log
-        set +o pipefail
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
@@ -129,9 +151,7 @@ jobs:
 
     - name: Run capacity scenarios
       run: |
-        set -o pipefail
         npm run capacity --if-present | tee -a capacity.log
-        set +o pipefail
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
