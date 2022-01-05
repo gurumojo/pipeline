@@ -31,22 +31,22 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
 
-    - name: Enable pipefail
-      run: set -o pipefail
-
     - name: Clone dependencies
-      run: npm ci | tee -a integration.log
+      run: |
+        set -o pipefail
+        npm ci | tee -a integration.log
       env:
         NODE_ENV: 'development'
 
     - name: Build artifacts
-      run: npm run build | tee -a integration.log
+      run: |
+        set -o pipefail
+        npm run build --if-present | tee -a integration.log
 
     - name: Run unit tests
-      run: npm test | tee -a integration.log
-
-    - name: Disable pipefail
-      run: set +o pipefail
+      run: |
+        set -o pipefail
+        npm test | tee -a integration.log
 
     - name: Create tarball
       run: |
