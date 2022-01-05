@@ -1,4 +1,3 @@
-const { ok } = require('assert')
 const { readdirSync } = require('fs')
 const { resolve } = require('path')
 
@@ -11,7 +10,7 @@ describe('pipeline', () => {
 			if (spec.test(i)) x.push(i)
 			return x
 		}, [])
-		ok(!!files.length)
+		expect(files.length).toBeTruthy()
 	})
 	
 	it('contains executable feature descriptions', () => {
@@ -20,7 +19,7 @@ describe('pipeline', () => {
 			if (gherkin.test(i)) x.push(i)
 			return x
 		}, [])
-		ok(!!files.length)
+		expect(files.length).toBeTruthy()
 	})
 
 	/*

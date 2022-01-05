@@ -1,7 +1,9 @@
 pipeline
 ========
 
-Continuous Integration and Delivery Resources [![CI-CD](https://github.com/gurumojo/pipeline/actions/workflows/main.yml/badge.svg)](https://github.com/gurumojo/pipeline/actions/workflows/main.yml)
+Continuous Integration and Delivery Resources
+
+[![CI-CD](https://github.com/gurumojo/pipeline/actions/workflows/main.yml/badge.svg)](https://github.com/gurumojo/pipeline/actions/workflows/main.yml)
 
 
 value stream

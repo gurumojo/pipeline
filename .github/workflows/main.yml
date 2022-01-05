@@ -8,9 +8,9 @@ env:
 
 on:
   push:
-    branches: [ main ]
+    branches: [ xxxxxxx ]
   pull_request:
-    branches: [ main ]
+    branches: [ xxxxxxx ]
 
 jobs:
 
@@ -30,21 +30,32 @@ jobs:
         cache: 'npm'
 
     - name: Clone dependencies
-      run: npm ci
+      run: |
+        set -o pipefail
+        npm ci | tee -a integration.log
+        set +o pipefail
       env:
         NODE_ENV: 'development'
 
     - name: Build artifacts
-      run: npm run build --if-present
+      run: |
+        set -o pipefail
+        npm run build --if-present
+        set +o pipefail
 
     - name: Run unit tests
-      run: npm test
+      run: |
+        set -o pipefail
+        npm test
+        set +o pipefail
 
     - name: Create tarball
       run: |
         echo ${{ github.sha }} > version
         rm -rf .git .github .gitignore
-        tar -cvf build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar .
+        set -o pipefail
+        tar -cvf build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar . | tee -a integration.log
+        set +o pipefail
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
@@ -67,7 +78,10 @@ jobs:
         name: builds
 
     - name: Unpack tarball
-      run: tar -xf build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar
+      run: |
+        set -o pipefail
+        tar -xf build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar | tee -a acceptance.log
+        set +o pipefail
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
@@ -76,7 +90,10 @@ jobs:
         cache: 'npm'
 
     - name: Run acceptance scenarios
-      run: npm run scenario
+      run: |
+        set -o pipefail
+        npm run scenario | tee -a acceptance.log
+        set +o pipefail
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
@@ -100,8 +117,9 @@ jobs:
 
     - name: Unpack tarball
       run: |
-        tar -xf build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar
-        cat version
+        set -o pipefail
+        tar -xf build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar | tee -a capacity.log
+        set +o pipefail
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
@@ -110,7 +128,10 @@ jobs:
         cache: 'npm'
 
     - name: Run capacity scenarios
-      run: npm run capacity --if-present
+      run: |
+        set -o pipefail
+        npm run capacity --if-present | tee -a capacity.log
+        set +o pipefail
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2

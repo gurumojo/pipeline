@@ -1,4 +1,3 @@
-const { equal, ok } = require('assert')
 const { readdirSync, statSync } = require('fs')
 const { resolve } = require('path')
 
@@ -39,15 +38,15 @@ describe('pipeline/cli', () => {
 		// so we find an odd last bit in a shared executable
 		const stat = statSync(resolve(__dirname, '../index.js'))
 		const mode = stat.mode.toString(8).slice(-1)
-		ok(isOdd(mode))
+		expect(isOdd(mode)).toBeTruthy()
 	})
 
 	it('presents usage information by default', () => {
-		equal(subjectUnderTest(), 'argparse')
+		expect(subjectUnderTest()).toEqual('argparse')
 	})
 
 	it('presents feature information on demand', () => {
-		ok(Array.isArray(subjectUnderTest('-f').features))
+		expect(Array.isArray(subjectUnderTest('-f').features)).toBe(true)
 	})
 
 	/*
