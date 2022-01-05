@@ -45,14 +45,15 @@ jobs:
     - name: Run unit tests
       run: npm test | tee -a integration.log
 
+    - name: Disable pipefail
+      run: set +o pipefail
+
     - name: Create tarball
       run: |
         echo ${{ github.sha }} > version
         rm -rf .git .github .gitignore
-        tar -cvf build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar . | tee -a integration.log
-
-    - name: Disable pipefail
-      run: set +o pipefail
+        tar -cvf build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar .
+        rm -rf node_modules
 
     - name: Configure Credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -68,7 +69,9 @@ jobs:
         #role-skip-session-tagging: true
 
     - name: Upload artifacts
-      run: aws s3 cp . s3://${{ secrets.STORAGE_BUCKET }}/${{ github.sha }} --recursive --exclude "*" --include "*.log" --include "*.tar"
+      run: |
+        aws s3 cp . s3://${{ secrets.STORAGE_BUCKET }}/${{ github.sha }} \
+        --recursive --exclude "*" --include "*.log" --include "*.tar"
 
     #- name: Upload artifacts
     #  uses: actions/upload-artifact@v2
@@ -102,8 +105,8 @@ jobs:
     - name: Download artifacts
       run: aws s3 sync s3://${{ secrets.STORAGE_BUCKET }}/${{ github.sha }} .
 
-    #- name: Unpack tarball
-    #  run: tar -xf build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar
+    - name: Unpack tarball
+      run: tar -xf build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
@@ -117,7 +120,7 @@ jobs:
         npm run scenario | tee -a acceptance.log
 
     - name: Upload artifacts
-      run: aws s3 sync . s3://${{ secrets.STORAGE_BUCKET }}/${{ github.sha }}
+      run: aws s3 cp acceptance.log s3://${{ secrets.STORAGE_BUCKET }}/${{ github.sha }}/acceptance.log
 
     #- name: Upload artifacts
     #  uses: actions/upload-artifact@v2
@@ -132,16 +135,22 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    environment: storage
+
     steps:
 
-    - name: Download artifacts
-      uses: actions/download-artifact@v2
+    - name: Configure Credentials
+      uses: aws-actions/configure-aws-credentials@v1
       with:
-        name: builds
+        aws-region: us-west-2
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    - name: Download artifacts
+      run: aws s3 sync s3://${{ secrets.STORAGE_BUCKET }}/${{ github.sha }} .
 
     - name: Unpack tarball
-      run: |
-        tar -xf build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar | tee -a capacity.log
+      run: tar -xf build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
@@ -151,13 +160,11 @@ jobs:
 
     - name: Run capacity scenarios
       run: |
+        set -o pipefail
         npm run capacity --if-present | tee -a capacity.log
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: capacity-${{ env.NODE_VERSION }}-${{ github.sha }}
-        path: capacity.log
+      run: aws s3 cp capacity.log s3://${{ secrets.STORAGE_BUCKET }}/${{ github.sha }}/capacity.log
 
 
   deployment:
@@ -169,14 +176,6 @@ jobs:
     environment: acceptance
 
     steps:
-
-    - name: Download artifacts
-      uses: actions/download-artifact@v2
-      with:
-        name: builds
-
-    - name: Unpack tarball
-      run: tar -xf build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
@@ -194,9 +193,6 @@ jobs:
     environment: production
 
     steps:
-
-    - name: Download artifacts
-      uses: actions/download-artifact@v2
 
     - name: Debug logging
       run: tree .

@@ -20,8 +20,6 @@
     "jest": "27.4.5"
   },
   "scripts": {
-    "build": "echo; echo Hello World; echo",
-    "capacity": "echo; echo Unleash Chaos Monkey; echo",
     "scenario": "npx cucumber-js -c ./.cucumber.js",
     "test": "npx jest"
   },
