@@ -41,6 +41,7 @@ jobs:
 
     - name: Run a multi-line script
       run: |
+        env > workflow
         now=$(date -Iseconds)
         aws s3 sync . s3://net-gurumojo-ci/$now
 
