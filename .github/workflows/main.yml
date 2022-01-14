@@ -5,6 +5,7 @@ env:
   COMMIT: ${{ github.sha }}
   NODE_ENV: production
   NODE_VERSION: 14.x
+  S3_PATH: ${{ secrets.STORAGE_BUCKET }}/${{ env.GITHUB_REPOSITORY }}
 
 on:
   push:
@@ -50,9 +51,8 @@ jobs:
 
     - name: Create tarball
       run: |
-        echo ${{ github.sha }} > version
         rm -rf .git .github .gitignore
-        tar -cvf build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar .
+        tar -cvf ${{ env.GITHUB_REPOSITORY }}-${{ github.sha }}-${{ env.NODE_VERSION }}.tar .
         rm -rf node_modules
 
     - name: Configure Credentials
@@ -70,14 +70,9 @@ jobs:
 
     - name: Upload artifacts
       run: |
-        aws s3 cp . s3://${{ secrets.STORAGE_BUCKET }}/${{ github.sha }} \
+        aws s3 cp . \
+        s3://${{ env.S3_PATH }}/${{ github.sha }} \
         --recursive --exclude "*" --include "*.log" --include "*.tar"
-
-    #- name: Upload artifacts
-    #  uses: actions/upload-artifact@v2
-    #  with:
-    #    name: builds
-    #    path: build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar
 
 
   acceptance:
@@ -90,11 +85,6 @@ jobs:
 
     steps:
 
-    #- name: Download artifacts
-    #  uses: actions/download-artifact@v2
-    #  with:
-    #    name: builds
-
     - name: Configure Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
@@ -103,10 +93,14 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     - name: Download artifacts
-      run: aws s3 sync s3://${{ secrets.STORAGE_BUCKET }}/${{ github.sha }} .
+      run: |
+        set -o pipefail
+        aws s3 sync \
+        s3://${{ env.S3_PATH }}/${{ github.sha }} \
+        . | tee -a acceptance.log
 
     - name: Unpack tarball
-      run: tar -xf build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar
+      run: tar -xf ${{ env.GITHUB_REPOSITORY }}-${{ github.sha }}-${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
@@ -120,13 +114,9 @@ jobs:
         npm run scenario | tee -a acceptance.log
 
     - name: Upload artifacts
-      run: aws s3 cp acceptance.log s3://${{ secrets.STORAGE_BUCKET }}/${{ github.sha }}/acceptance.log
-
-    #- name: Upload artifacts
-    #  uses: actions/upload-artifact@v2
-    #  with:
-    #    name: acceptance-${{ env.NODE_VERSION }}-${{ github.sha }}
-    #    path: acceptance.log
+      run: |
+        aws s3 cp acceptance.log \
+        s3://${{ env.S3_PATH }}/${{ github.sha }}/acceptance.log
 
 
   capacity:
@@ -147,10 +137,14 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     - name: Download artifacts
-      run: aws s3 sync s3://${{ secrets.STORAGE_BUCKET }}/${{ github.sha }} .
+      run: |
+        set -o pipefail
+        aws s3 sync \
+        s3://${{ env.S3_PATH }}/${{ github.sha }} \
+        . | tee -a acceptance.log
 
     - name: Unpack tarball
-      run: tar -xf build-${{ env.NODE_VERSION }}-${{ github.sha }}.tar
+      run: tar -xf ${{ env.GITHUB_REPOSITORY }}-${{ github.sha }}-${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
@@ -164,7 +158,9 @@ jobs:
         npm run capacity --if-present | tee -a capacity.log
 
     - name: Upload artifacts
-      run: aws s3 cp capacity.log s3://${{ secrets.STORAGE_BUCKET }}/${{ github.sha }}/capacity.log
+      run: |
+        aws s3 cp capacity.log \
+        s3://${{ env.S3_PATH }}/${{ github.sha }}/capacity.log
 
 
   deployment:
@@ -177,11 +173,33 @@ jobs:
 
     steps:
 
+    - name: Configure Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-region: us-west-2
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    - name: Download artifacts
+      run: |
+        set -o pipefail
+        aws s3 sync \
+        s3://${{ env.S3_PATH }}/${{ github.sha }} \
+        . | tee -a deployment.log
+
+    - name: Unpack tarball
+      run: tar -xf ${{ env.GITHUB_REPOSITORY }}-${{ github.sha }}-${{ env.NODE_VERSION }}.tar
+
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
+
+    - name: Upload artifacts
+      run: |
+        aws s3 cp deployment.log \
+        s3://${{ env.S3_PATH }}/${{ github.sha }}/deployment.log
 
 
   release:
@@ -194,6 +212,36 @@ jobs:
 
     steps:
 
+    - name: Configure Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-region: us-west-2
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    - name: Download artifacts
+      run: |
+        set -o pipefail
+        aws s3 sync \
+        s3://${{ env.S3_PATH }}/${{ github.sha }} \
+        . | tee -a release.log
+
+    - name: Unpack tarball
+      run: tar -xf ${{ env.GITHUB_REPOSITORY }}-${{ github.sha }}-${{ env.NODE_VERSION }}.tar
+
+    - name: Use node ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
     - name: Debug logging
-      run: tree .
+      run: |
+        cat package.json | tee -a release.log
+        tree . | tee -a release.log
+
+    - name: Upload artifacts
+      run: |
+        aws s3 cp release.log \
+        s3://${{ env.S3_PATH }}/${{ github.sha }}/release.log
 
