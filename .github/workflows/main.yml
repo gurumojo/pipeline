@@ -57,7 +57,7 @@ jobs:
       run: |
         rm -rf .git .github .gitignore
         tar -cvf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar . \
-        --exclude=${{ github.owner }}
+        --exclude="${{ github.owner }}/*"
 
     - name: Configure credentials
       uses: aws-actions/configure-aws-credentials@v1
