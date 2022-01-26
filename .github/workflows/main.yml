@@ -71,7 +71,7 @@ jobs:
 
     - name: Upload artifacts
       run: |
-        aws s3 cp . s3://${{ env.S3_PATH }} \
+        aws s3 cp --no-progress . s3://${{ env.S3_PATH }} \
         --recursive --exclude "*" --include "*.log" --include "*.tar"
 
 
@@ -98,15 +98,13 @@ jobs:
         mkdir -p ${{ env.BUILD_PATH }}
         aws s3 sync --no-progress s3://${{ env.S3_PATH }} ${{ env.BUILD_PATH }} \
         | tee -a ${{ env.BUILD_PATH }}/acceptance.log
+        tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
-
-    - name: Unpack tarball
-      run: tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
 
     - name: Run acceptance scenarios
       run: |
@@ -115,7 +113,8 @@ jobs:
 
     - name: Upload artifacts
       run: |
-        aws s3 cp ${{ env.BUILD_PATH }}/acceptance.log s3://${{ env.S3_PATH }}/acceptance.log
+        aws s3 cp --no-progress \
+        ${{ env.BUILD_PATH }}/acceptance.log s3://${{ env.S3_PATH }}/acceptance.log
 
 
   capacity:
@@ -141,15 +140,13 @@ jobs:
         mkdir -p ${{ env.BUILD_PATH }}
         aws s3 sync --no-progress s3://${{ env.S3_PATH }} ${{ env.BUILD_PATH }} \
         | tee -a ${{ env.BUILD_PATH }}/capacity.log
+        tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
-
-    - name: Unpack tarball
-      run: tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
 
     - name: Run capacity scenarios
       run: |
@@ -158,7 +155,8 @@ jobs:
 
     - name: Upload artifacts
       run: |
-        aws s3 cp ${{ env.BUILD_PATH }}/capacity.log s3://${{ env.S3_PATH }}/capacity.log
+        aws s3 cp --no-progress \
+        ${{ env.BUILD_PATH }}/capacity.log s3://${{ env.S3_PATH }}/capacity.log
 
 
   deployment:
@@ -184,6 +182,7 @@ jobs:
         mkdir -p ${{ env.BUILD_PATH }}
         aws s3 sync --no-progress s3://${{ env.S3_PATH }} ${{ env.BUILD_PATH }} \
         | tee -a ${{ env.BUILD_PATH }}/deployment.log
+        tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
@@ -191,12 +190,10 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
 
-    - name: Unpack tarball
-      run: tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
-
     - name: Upload artifacts
       run: |
-        aws s3 cp ${{ env.BUILD_PATH }}/deployment.log s3://${{ env.S3_PATH }}/deployment.log
+        aws s3 cp --no-progress \
+        ${{ env.BUILD_PATH }}/deployment.log s3://${{ env.S3_PATH }}/deployment.log
 
 
   release:
@@ -222,9 +219,7 @@ jobs:
         mkdir -p ${{ env.BUILD_PATH }}
         aws s3 sync --no-progress s3://${{ env.S3_PATH }} ${{ env.BUILD_PATH }} \
         | tee -a ${{ env.BUILD_PATH }}/release.log
-
-    - name: Unpack tarball
-      run: tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
+        tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
@@ -239,5 +234,6 @@ jobs:
 
     - name: Upload artifacts
       run: |
-        aws s3 cp ${{ env.BUILD_PATH }}/release.log s3://${{ env.S3_PATH }}/release.log
+        aws s3 cp --no-progress \
+        ${{ env.BUILD_PATH }}/release.log s3://${{ env.S3_PATH }}/release.log
 
