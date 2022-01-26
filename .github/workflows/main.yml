@@ -36,19 +36,20 @@ jobs:
     - name: Clone dependencies
       run: |
         set -o pipefail
-        npm ci --verbose 2>&1 | tee -a integration.log
+        cat package.json | tee -a integration.log
+        npm ci 2>&1 | tee -a integration.log
       env:
         NODE_ENV: 'development'
 
     - name: Build artifacts
       run: |
         set -o pipefail
-        npm run build --if-present --verbose 2>&1 | tee -a integration.log
+        npm run build --if-present 2>&1 | tee -a integration.log
 
     - name: Run unit tests
       run: |
         set -o pipefail
-        npm test --verbose 2>&1 | tee -a integration.log
+        npm test 2>&1 | tee -a integration.log
 
     - name: Create tarball
       run: |
@@ -97,7 +98,7 @@ jobs:
         set -o pipefail
         mkdir -p ${{ env.BUILD_PATH }}
         aws s3 sync --no-progress s3://${{ env.S3_PATH }} ${{ env.BUILD_PATH }} \
-        | tee -a ${{ env.BUILD_PATH }}/acceptance.log
+        2>&1 | tee -a ${{ env.BUILD_PATH }}/acceptance.log
         tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
@@ -109,7 +110,7 @@ jobs:
     - name: Run acceptance scenarios
       run: |
         set -o pipefail
-        npm run scenario --verbose 2>&1 | tee -a ${{ env.BUILD_PATH }}/acceptance.log
+        npm run scenario 2>&1 | tee -a ${{ env.BUILD_PATH }}/acceptance.log
 
     - name: Upload artifacts
       run: |
@@ -139,7 +140,7 @@ jobs:
         set -o pipefail
         mkdir -p ${{ env.BUILD_PATH }}
         aws s3 sync --no-progress s3://${{ env.S3_PATH }} ${{ env.BUILD_PATH }} \
-        | tee -a ${{ env.BUILD_PATH }}/capacity.log
+        2>&1 | tee -a ${{ env.BUILD_PATH }}/capacity.log
         tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
@@ -151,7 +152,7 @@ jobs:
     - name: Run capacity scenarios
       run: |
         set -o pipefail
-        npm run capacity --if-present --verbose 2>&1 | tee -a ${{ env.BUILD_PATH }}/capacity.log
+        npm run capacity --if-present 2>&1 | tee -a ${{ env.BUILD_PATH }}/capacity.log
 
     - name: Upload artifacts
       run: |
@@ -181,7 +182,7 @@ jobs:
         set -o pipefail
         mkdir -p ${{ env.BUILD_PATH }}
         aws s3 sync --no-progress s3://${{ env.S3_PATH }} ${{ env.BUILD_PATH }} \
-        | tee -a ${{ env.BUILD_PATH }}/deployment.log
+        2>&1 | tee -a ${{ env.BUILD_PATH }}/deployment.log
         tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
@@ -218,7 +219,7 @@ jobs:
         set -o pipefail
         mkdir -p ${{ env.BUILD_PATH }}
         aws s3 sync --no-progress s3://${{ env.S3_PATH }} ${{ env.BUILD_PATH }} \
-        | tee -a ${{ env.BUILD_PATH }}/release.log
+        2>&1 | tee -a ${{ env.BUILD_PATH }}/release.log
         tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
@@ -229,7 +230,7 @@ jobs:
 
     - name: Debug logging
       run: |
-        cat package.json | tee -a ${{ env.BUILD_PATH }}/release.log
+        rm -rf node_modules
         tree . | tee -a ${{ env.BUILD_PATH }}/release.log
 
     - name: Upload artifacts
