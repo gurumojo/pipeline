@@ -3,7 +3,7 @@ name: CI-CD
 
 env:
   AWS_REGION: us-west-2
-  COMMIT: ${{ github.sha }}
+  COMMIT: ${{ github.repository.split('/').pop() }}-${{ github.sha }}
   NODE_ENV: production
   NODE_VERSION: 14.x
   S3_PATH: ${{ secrets.STORAGE_BUCKET }}/${{ github.repository }}
@@ -53,7 +53,7 @@ jobs:
     - name: Create tarball
       run: |
         rm -rf .git .github .gitignore
-        tar -cvf ${{ github.repository }}-${{ github.sha }}-${{ env.NODE_VERSION }}.tar .
+        tar -cvf ${{ env.COMMIT }}-${{ env.NODE_VERSION }}.tar .
         rm -rf node_modules
 
     - name: Configure Credentials
@@ -101,7 +101,7 @@ jobs:
         . | tee -a acceptance.log
 
     - name: Unpack tarball
-      run: tar -xf ${{ github.repository }}-${{ github.sha }}-${{ env.NODE_VERSION }}.tar
+      run: tar -xf ${{ env.COMMIT }}-${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
@@ -145,7 +145,7 @@ jobs:
         . | tee -a acceptance.log
 
     - name: Unpack tarball
-      run: tar -xf ${{ github.repository }}-${{ github.sha }}-${{ env.NODE_VERSION }}.tar
+      run: tar -xf ${{ env.COMMIT }}-${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
@@ -189,7 +189,7 @@ jobs:
         . | tee -a deployment.log
 
     - name: Unpack tarball
-      run: tar -xf ${{ github.repository }}-${{ github.sha }}-${{ env.NODE_VERSION }}.tar
+      run: tar -xf ${{ env.COMMIT }}-${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
@@ -228,7 +228,7 @@ jobs:
         . | tee -a release.log
 
     - name: Unpack tarball
-      run: tar -xf ${{ github.repository }}-${{ github.sha }}-${{ env.NODE_VERSION }}.tar
+      run: tar -xf ${{ env.COMMIT }}-${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
