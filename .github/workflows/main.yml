@@ -96,17 +96,17 @@ jobs:
       run: |
         set -o pipefail
         mkdir -p ${{ env.BUILD_PATH }}
-        aws s3 sync s3://${{ env.S3_PATH }} ${{ env.BUILD_PATH }} \
+        aws s3 sync --no-progress s3://${{ env.S3_PATH }} ${{ env.BUILD_PATH }} \
         | tee -a ${{ env.BUILD_PATH }}/acceptance.log
-
-    - name: Unpack tarball
-      run: tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
+
+    - name: Unpack tarball
+      run: tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
 
     - name: Run acceptance scenarios
       run: |
@@ -139,17 +139,17 @@ jobs:
       run: |
         set -o pipefail
         mkdir -p ${{ env.BUILD_PATH }}
-        aws s3 sync s3://${{ env.S3_PATH }} ${{ env.BUILD_PATH }} \
+        aws s3 sync --no-progress s3://${{ env.S3_PATH }} ${{ env.BUILD_PATH }} \
         | tee -a ${{ env.BUILD_PATH }}/capacity.log
-
-    - name: Unpack tarball
-      run: tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
+
+    - name: Unpack tarball
+      run: tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
 
     - name: Run capacity scenarios
       run: |
@@ -182,17 +182,17 @@ jobs:
       run: |
         set -o pipefail
         mkdir -p ${{ env.BUILD_PATH }}
-        aws s3 sync s3://${{ env.S3_PATH }} ${{ env.BUILD_PATH }} \
+        aws s3 sync --no-progress s3://${{ env.S3_PATH }} ${{ env.BUILD_PATH }} \
         | tee -a ${{ env.BUILD_PATH }}/deployment.log
-
-    - name: Unpack tarball
-      run: tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
+
+    - name: Unpack tarball
+      run: tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
 
     - name: Upload artifacts
       run: |
@@ -220,7 +220,7 @@ jobs:
       run: |
         set -o pipefail
         mkdir -p ${{ env.BUILD_PATH }}
-        aws s3 sync s3://${{ env.S3_PATH }} ${{ env.BUILD_PATH }} \
+        aws s3 sync --no-progress s3://${{ env.S3_PATH }} ${{ env.BUILD_PATH }} \
         | tee -a ${{ env.BUILD_PATH }}/release.log
 
     - name: Unpack tarball
