@@ -3,10 +3,10 @@ name: CI-CD
 
 env:
   AWS_REGION: us-west-2
-  COMMIT: ${{ github.repository.split('/').pop() }}-${{ github.sha }}
   NODE_ENV: production
   NODE_VERSION: 14.x
-  S3_PATH: ${{ secrets.STORAGE_BUCKET }}/${{ github.repository }}
+  S3_PATH: ${{ secrets.STORAGE_BUCKET }}/${{ github.repository }}/${{ github.sha }}
+  BUILD_PATH: ${{ github.repository }}/${{ github.sha }}
 
 on:
   push:
@@ -33,30 +33,33 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
 
+    - name: Add build directory
+      run: mkdir -p ${{ env.BUILD_PATH }}
+
     - name: Clone dependencies
       run: |
         set -o pipefail
-        npm ci | tee -a integration.log
+        npm ci | tee -a ${{ env.BUILD_PATH }}/integration.log
       env:
         NODE_ENV: 'development'
 
     - name: Build artifacts
       run: |
         set -o pipefail
-        npm run build --if-present | tee -a integration.log
+        npm run build --if-present | tee -a ${{ env.BUILD_PATH }}/integration.log
 
     - name: Run unit tests
       run: |
         set -o pipefail
-        npm test | tee -a integration.log
+        npm test | tee -a ${{ env.BUILD_PATH }}/integration.log
 
     - name: Create tarball
       run: |
         rm -rf .git .github .gitignore
-        tar -cvf ${{ env.COMMIT }}-${{ env.NODE_VERSION }}.tar .
-        rm -rf node_modules
+        tar -cvf --exclude=${{ github.owner }} \
+        ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar .
 
-    - name: Configure Credentials
+    - name: Configure credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-region: ${{ env.AWS_REGION }}
@@ -71,8 +74,7 @@ jobs:
 
     - name: Upload artifacts
       run: |
-        aws s3 cp . \
-        s3://${{ env.S3_PATH }}/${{ github.sha }} \
+        aws s3 cp ${{ env.BUILD_PATH }} s3://${{ env.S3_PATH }} \
         --recursive --exclude "*" --include "*.log" --include "*.tar"
 
 
@@ -96,12 +98,12 @@ jobs:
     - name: Download artifacts
       run: |
         set -o pipefail
-        aws s3 sync \
-        s3://${{ env.S3_PATH }}/${{ github.sha }} \
-        . | tee -a acceptance.log
+        mkdir -p ${{ env.BUILD_PATH }}
+        aws s3 sync s3://${{ env.S3_PATH }} ${{ env.BUILD_PATH }} \
+        | tee -a ${{ env.BUILD_PATH }}/acceptance.log
 
     - name: Unpack tarball
-      run: tar -xf ${{ env.COMMIT }}-${{ env.NODE_VERSION }}.tar
+      run: tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
@@ -112,12 +114,11 @@ jobs:
     - name: Run acceptance scenarios
       run: |
         set -o pipefail
-        npm run scenario | tee -a acceptance.log
+        npm run scenario | tee -a ${{ env.BUILD_PATH }}/acceptance.log
 
     - name: Upload artifacts
       run: |
-        aws s3 cp acceptance.log \
-        s3://${{ env.S3_PATH }}/${{ github.sha }}/acceptance.log
+        aws s3 cp ${{ env.BUILD_PATH }}/acceptance.log s3://${{ env.S3_PATH }}/acceptance.log
 
 
   capacity:
@@ -140,12 +141,12 @@ jobs:
     - name: Download artifacts
       run: |
         set -o pipefail
-        aws s3 sync \
-        s3://${{ env.S3_PATH }}/${{ github.sha }} \
-        . | tee -a acceptance.log
+        mkdir -p ${{ env.BUILD_PATH }}
+        aws s3 sync s3://${{ env.S3_PATH }} ${{ env.BUILD_PATH }} \
+        | tee -a ${{ env.BUILD_PATH }}/capacity.log
 
     - name: Unpack tarball
-      run: tar -xf ${{ env.COMMIT }}-${{ env.NODE_VERSION }}.tar
+      run: tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
@@ -156,12 +157,11 @@ jobs:
     - name: Run capacity scenarios
       run: |
         set -o pipefail
-        npm run capacity --if-present | tee -a capacity.log
+        npm run capacity --if-present | tee -a ${{ env.BUILD_PATH }}/capacity.log
 
     - name: Upload artifacts
       run: |
-        aws s3 cp capacity.log \
-        s3://${{ env.S3_PATH }}/${{ github.sha }}/capacity.log
+        aws s3 cp ${{ env.BUILD_PATH }}/capacity.log s3://${{ env.S3_PATH }}/capacity.log
 
 
   deployment:
@@ -184,12 +184,12 @@ jobs:
     - name: Download artifacts
       run: |
         set -o pipefail
-        aws s3 sync \
-        s3://${{ env.S3_PATH }}/${{ github.sha }} \
-        . | tee -a deployment.log
+        mkdir -p ${{ env.BUILD_PATH }}
+        aws s3 sync s3://${{ env.S3_PATH }} ${{ env.BUILD_PATH }} \
+        | tee -a ${{ env.BUILD_PATH }}/deployment.log
 
     - name: Unpack tarball
-      run: tar -xf ${{ env.COMMIT }}-${{ env.NODE_VERSION }}.tar
+      run: tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
@@ -199,8 +199,7 @@ jobs:
 
     - name: Upload artifacts
       run: |
-        aws s3 cp deployment.log \
-        s3://${{ env.S3_PATH }}/${{ github.sha }}/deployment.log
+        aws s3 cp ${{ env.BUILD_PATH }}/deployment.log s3://${{ env.S3_PATH }}/deployment.log
 
 
   release:
@@ -223,12 +222,12 @@ jobs:
     - name: Download artifacts
       run: |
         set -o pipefail
-        aws s3 sync \
-        s3://${{ env.S3_PATH }}/${{ github.sha }} \
-        . | tee -a release.log
+        mkdir -p ${{ env.BUILD_PATH }}
+        aws s3 sync s3://${{ env.S3_PATH }} ${{ env.BUILD_PATH }} \
+        | tee -a ${{ env.BUILD_PATH }}/release.log
 
     - name: Unpack tarball
-      run: tar -xf ${{ env.COMMIT }}-${{ env.NODE_VERSION }}.tar
+      run: tar -xf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
@@ -238,11 +237,10 @@ jobs:
 
     - name: Debug logging
       run: |
-        cat package.json | tee -a release.log
-        tree . | tee -a release.log
+        cat package.json | tee -a ${{ env.BUILD_PATH }}/release.log
+        tree . | tee -a ${{ env.BUILD_PATH }}/release.log
 
     - name: Upload artifacts
       run: |
-        aws s3 cp release.log \
-        s3://${{ env.S3_PATH }}/${{ github.sha }}/release.log
+        aws s3 cp ${{ env.BUILD_PATH }}/release.log s3://${{ env.S3_PATH }}/release.log
 
