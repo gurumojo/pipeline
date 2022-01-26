@@ -36,19 +36,19 @@ jobs:
     - name: Clone dependencies
       run: |
         set -o pipefail
-        npm ci --verbose | tee -a integration.log 2>&1
+        npm ci --verbose 2>&1 | tee -a integration.log
       env:
         NODE_ENV: 'development'
 
     - name: Build artifacts
       run: |
         set -o pipefail
-        npm run build --if-present --verbose | tee -a integration.log 2>&1
+        npm run build --if-present --verbose 2>&1 | tee -a integration.log
 
     - name: Run unit tests
       run: |
         set -o pipefail
-        npm test --verbose | tee -a integration.log 2>&1
+        npm test --verbose 2>&1 | tee -a integration.log
 
     - name: Create tarball
       run: |
@@ -109,7 +109,7 @@ jobs:
     - name: Run acceptance scenarios
       run: |
         set -o pipefail
-        npm run scenario --verbose | tee -a ${{ env.BUILD_PATH }}/acceptance.log
+        npm run scenario --verbose 2>&1 | tee -a ${{ env.BUILD_PATH }}/acceptance.log
 
     - name: Upload artifacts
       run: |
@@ -151,7 +151,7 @@ jobs:
     - name: Run capacity scenarios
       run: |
         set -o pipefail
-        npm run capacity --if-present --verbose | tee -a ${{ env.BUILD_PATH }}/capacity.log
+        npm run capacity --if-present --verbose 2>&1 | tee -a ${{ env.BUILD_PATH }}/capacity.log
 
     - name: Upload artifacts
       run: |
