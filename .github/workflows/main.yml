@@ -43,17 +43,18 @@ jobs:
     - name: Build artifacts
       run: |
         set -o pipefail
-        npm run build --if-present | tee -a integration.log
+        npm run build --if-present --verbose | tee -a integration.log
 
     - name: Run unit tests
       run: |
         set -o pipefail
-        npm test | tee -a integration.log
+        npm test --verbose | tee -a integration.log
 
     - name: Create tarball
       run: |
         rm -rf .git .github .gitignore
         tar -cvf ${{ env.NODE_VERSION }}.tar .
+        rm -rf node_modules
 
     - name: Configure credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -110,7 +111,7 @@ jobs:
     - name: Run acceptance scenarios
       run: |
         set -o pipefail
-        npm run scenario | tee -a ${{ env.BUILD_PATH }}/acceptance.log
+        npm run scenario --verbose | tee -a ${{ env.BUILD_PATH }}/acceptance.log
 
     - name: Upload artifacts
       run: |
@@ -153,7 +154,7 @@ jobs:
     - name: Run capacity scenarios
       run: |
         set -o pipefail
-        npm run capacity --if-present | tee -a ${{ env.BUILD_PATH }}/capacity.log
+        npm run capacity --if-present --verbose | tee -a ${{ env.BUILD_PATH }}/capacity.log
 
     - name: Upload artifacts
       run: |
