@@ -1,7 +1,7 @@
 {
   "name": "pipeline",
   "description": "CI/CD resources",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "theguy@gurumojo.net",
   "license": "ISC",
   "homepage": "https://github.com/gurumojo/pipeline#readme",

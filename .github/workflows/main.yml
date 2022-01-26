@@ -2,10 +2,11 @@
 name: CI-CD
 
 env:
+  AWS_REGION: us-west-2
   COMMIT: ${{ github.sha }}
   NODE_ENV: production
   NODE_VERSION: 14.x
-  S3_PATH: ${{ secrets.STORAGE_BUCKET }}/${{ env.GITHUB_REPOSITORY }}
+  S3_PATH: ${{ secrets.STORAGE_BUCKET }}/${{ github.repository }}
 
 on:
   push:
@@ -52,13 +53,13 @@ jobs:
     - name: Create tarball
       run: |
         rm -rf .git .github .gitignore
-        tar -cvf ${{ env.GITHUB_REPOSITORY }}-${{ github.sha }}-${{ env.NODE_VERSION }}.tar .
+        tar -cvf ${{ github.repository }}-${{ github.sha }}-${{ env.NODE_VERSION }}.tar .
         rm -rf node_modules
 
     - name: Configure Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
-        aws-region: us-west-2
+        aws-region: ${{ env AWS_REGION }}
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         #role-external-id: ${{ secrets.AWS_ROLE_EXTERNAL_ID }}
@@ -88,7 +89,7 @@ jobs:
     - name: Configure Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
-        aws-region: us-west-2
+        aws-region: ${{ env AWS_REGION }}
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
@@ -100,7 +101,7 @@ jobs:
         . | tee -a acceptance.log
 
     - name: Unpack tarball
-      run: tar -xf ${{ env.GITHUB_REPOSITORY }}-${{ github.sha }}-${{ env.NODE_VERSION }}.tar
+      run: tar -xf ${{ github.repository }}-${{ github.sha }}-${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
@@ -132,7 +133,7 @@ jobs:
     - name: Configure Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
-        aws-region: us-west-2
+        aws-region: ${{ env AWS_REGION }}
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
@@ -144,7 +145,7 @@ jobs:
         . | tee -a acceptance.log
 
     - name: Unpack tarball
-      run: tar -xf ${{ env.GITHUB_REPOSITORY }}-${{ github.sha }}-${{ env.NODE_VERSION }}.tar
+      run: tar -xf ${{ github.repository }}-${{ github.sha }}-${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
@@ -176,7 +177,7 @@ jobs:
     - name: Configure Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
-        aws-region: us-west-2
+        aws-region: ${{ env AWS_REGION }}
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
@@ -188,7 +189,7 @@ jobs:
         . | tee -a deployment.log
 
     - name: Unpack tarball
-      run: tar -xf ${{ env.GITHUB_REPOSITORY }}-${{ github.sha }}-${{ env.NODE_VERSION }}.tar
+      run: tar -xf ${{ github.repository }}-${{ github.sha }}-${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
@@ -215,7 +216,7 @@ jobs:
     - name: Configure Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
-        aws-region: us-west-2
+        aws-region: ${{ env AWS_REGION }}
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
@@ -227,7 +228,7 @@ jobs:
         . | tee -a release.log
 
     - name: Unpack tarball
-      run: tar -xf ${{ env.GITHUB_REPOSITORY }}-${{ github.sha }}-${{ env.NODE_VERSION }}.tar
+      run: tar -xf ${{ github.repository }}-${{ github.sha }}-${{ env.NODE_VERSION }}.tar
 
     - name: Use node ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v2
