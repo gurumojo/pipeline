@@ -56,8 +56,8 @@ jobs:
     - name: Create tarball
       run: |
         rm -rf .git .github .gitignore
-        tar -cvf --exclude=${{ github.owner }} \
-        ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar .
+        tar -cvf ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar . \
+        --exclude=${{ github.owner }}
 
     - name: Configure credentials
       uses: aws-actions/configure-aws-credentials@v1
