@@ -56,7 +56,7 @@ jobs:
     - name: Create tarball
       run: |
         rm -rf .git .github .gitignore
-        tar -cvf --exclude="${{ github.owner }}/*" \
+        tar -cvf --exclude="${{ github.repository_owner }}/*" \
         ${{ env.BUILD_PATH }}/${{ env.NODE_VERSION }}.tar .
 
     - name: Configure credentials
