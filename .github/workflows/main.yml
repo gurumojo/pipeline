@@ -54,7 +54,7 @@ jobs:
     - name: Create tarball
       run: |
         rm -rf .git .github .gitignore
-        tar -cvf ${{ env.NODE_VERSION }}.tar .
+        tar -cvf --exclude="*.log" ${{ env.NODE_VERSION }}.tar .
         rm -rf node_modules
 
     - name: Configure credentials
@@ -230,7 +230,7 @@ jobs:
 
     - name: Debug logging
       run: |
-        rm -rf node_modules
+        rm -rf integration.log gurumojo node_modules
         tree . | tee -a ${{ env.BUILD_PATH }}/release.log
 
     - name: Upload artifacts
