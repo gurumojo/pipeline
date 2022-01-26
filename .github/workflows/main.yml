@@ -54,7 +54,7 @@ jobs:
     - name: Create tarball
       run: |
         rm -rf .git .github .gitignore
-        tar -cvf --exclude=integration.log ${{ env.NODE_VERSION }}.tar .
+        tar --exclude=integration.log -cvf ${{ env.NODE_VERSION }}.tar .
         rm -rf node_modules
 
     - name: Configure credentials
